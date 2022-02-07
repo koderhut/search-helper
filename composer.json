@@ -1,6 +1,6 @@
 {
     "name": "koderhut/search-helper",
-    "license": "Apache License 2.0",
+    "license": "Apache-2.0",
     "description": "A helper package for building better search functionality for web apps",
     "authors": [
         {
