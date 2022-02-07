@@ -1,0 +1,25 @@
+{
+    "name": "koderhut/search-helper",
+    "license": "Apache License 2.0",
+    "description": "A helper package for building better search functionality for web apps",
+    "authors": [
+        {
+            "name": "Denis Rendler",
+            "email": "connect@rendler.me"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "KoderHut\\SearchHelper\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "KoderHut\\SearchHelper\\Tests": "tests/"
+    },
+    "require": {
+        "php": "^8.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
+    }
+}
