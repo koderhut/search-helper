@@ -27,4 +27,9 @@ trait ScopeTrait
     {
         return (array) self::KEYS;
     }
+
+    public function priority(): int
+    {
+        return (int) self::PRIORITY;
+    }
 }

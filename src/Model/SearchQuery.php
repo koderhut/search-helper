@@ -67,6 +67,6 @@ class SearchQuery
 
     public function terms(): iterable
     {
-        return $this->terms->terms();
+        return $this->terms?->terms() ?? [];
     }
 }

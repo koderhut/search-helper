@@ -22,9 +22,6 @@ class Name implements ScopeInterface
 
     private const SUPPORTED_KEYWORD = ['name'];
     private const KEYS = ['name'];
+    private const PRIORITY = 10;
 
-    public function priority(): int
-    {
-        return 10;
-    }
 }

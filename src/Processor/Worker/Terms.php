@@ -25,22 +25,23 @@ use KoderHut\SearchHelper\Model\TermInterface;
  */
 class Terms implements WorkerInterface
 {
-    private const TERMS_REGEX        = '/(?!.*:)(?>"|\')(?P<mterm>[\w\d\s]+)(?>"|\')|(?!.*:)(?P<sterm>\w+)(?=\s)?|(?!.*:)(?P<allterm>\%{1}$)(?=\s)?/';
-    private const TERM_ALL           = 'allterm';
-    private const TERM_SINGLE_WORD   = 'sterm';
-    private const TERM_MULTIPLE_WORD = 'mterm';
+    private const TERMS_REGEX         = '/(?!.*:)(?>"|\')(?P<mterm>[\w\d\s@\.]+)(?>"|\')|(?!.*:)(?P<sterm>\w+)(?=\s)?|(?!.*:)(?P<allterm>\%{1}$)(?=\s)?/';
+    private const TERM_ALL            = 'allterm';
+    private const TERM_SINGLE_WORD    = 'sterm';
+    private const TERM_MULTIPLE_WORD  = 'mterm';
+    private const SQL_ALL_SEARCH_TERM = '%';
 
     public function handle(SearchQuery $items): void
     {
         $found = [];
         $terms = new TermsCollection();
 
-        if (!preg_match_all(self::TERMS_REGEX, $items->toString(), $found, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL) || empty($found)) {
+        if (!preg_match_all(self::TERMS_REGEX, $items->toString(), $found, PREG_SET_ORDER | PREG_UNMATCHED_AS_NULL) && !empty($found)) {
             throw new InvalidTermsStringException($items->toString());
         }
 
-        if (!($allTerm = $this->retrieveTerm(current($found), self::TERM_ALL)) instanceof NullTerm) {
-            $terms->add($allTerm);
+        if (empty($found) || $this->isAllSearch(current($found))) {
+            $terms->add(new Term(self::SQL_ALL_SEARCH_TERM));
             $items->setTerms($terms);
 
             return;
@@ -65,11 +66,24 @@ class Terms implements WorkerInterface
 
     public function supports(SearchQuery $searchQuery): bool
     {
-        return (bool)method_exists($searchQuery, 'setTerms') && !empty($searchQuery->toString());
+        return (bool)method_exists($searchQuery, 'setTerms');
     }
 
     public function name(): string
     {
         return 'terms';
+    }
+
+    private function isAllSearch(array $found): bool
+    {
+        if (empty($found)) {
+            return true;
+        }
+
+        if (!$this->retrieveTerm($found, self::TERM_ALL) instanceof NullTerm) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -24,8 +24,6 @@ use KoderHut\SearchHelper\Scope\ScopeInterface;
 class Scope implements WorkerInterface
 {
     private const TYPE_DELIMITER        = ':';
-    private const TYPE_DEFAULT          = All::class;
-    private const NO_DELIMITER_FOUND    = 0;
 
     /**
      * @var ScopeInterface[]
@@ -35,7 +33,9 @@ class Scope implements WorkerInterface
     public function __construct(ScopeInterface ...$scopes)
     {
         foreach ($scopes as $scope) {
-            $this->scopes[$scope->priority()] = $scope;
+            $priority = $this->findNextAvailablePriority($scope->priority());
+
+            $this->scopes[$priority] = $scope;
         }
         krsort($this->scopes, SORT_NUMERIC);
     }
@@ -51,25 +51,17 @@ class Scope implements WorkerInterface
     public function handle(SearchQuery $items): void
     {
         $typeDelimiterPosition = (int)strpos($items->toString(), self::TYPE_DELIMITER);
-
-//        if (self::NO_DELIMITER_FOUND === $typeDelimiterPosition) {
-//            $default = self::TYPE_DEFAULT;
-//            $items->setScope(new $default());
-//
-//            return;
-//        }
-
         $type = substr($items->toString(), 0, $typeDelimiterPosition) ?? '';
 
         foreach ($this->scopes as $searchScope) {
             if ($searchScope->supports($type)) {
                 $items->setScope($searchScope);
 
-                break;
+                return;
             }
         }
 
-//        throw new UnknownSearchScopeException($type);
+        throw new UnknownSearchScopeException($type);
     }
 
     public function supports(SearchQuery $searchQuery): bool
@@ -80,5 +72,20 @@ class Scope implements WorkerInterface
     public function name(): string
     {
         return 'scope';
+    }
+
+    protected function findNextAvailablePriority(int $startPriority): int
+    {
+        $iterations = 1;
+        while (isset($this->scopes[$startPriority])) {
+            $startPriority++;
+            $iterations++;
+
+            if (1000 <= $iterations) {
+                throw new \LogicException('Unable to find next available priority! Tried more than 1000 iterations');
+            }
+        }
+
+        return $startPriority;
     }
 }
